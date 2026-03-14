@@ -499,6 +499,15 @@
 </head>
 <body>
 
+    <!-- Hidden form for Netlify bot detection (it won't see the one inside the modal) -->
+    <form name="orders" netlify netlify-honeypot="bot-field" hidden>
+        <input name="form-name" type="hidden" value="orders">
+        <input name="bot-field">
+        <input name="product">
+        <input name="full_name">
+        <input name="whatsapp">
+    </form>
+
     <!-- ═══ NAV ═══ -->
     <nav class="nav fade-up">
         <div>
@@ -581,5 +590,122 @@
                 <span>WhatsApp Support</span>
             </div>
         </div>
-  </section>
-  
+    </section>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer class="footer">
+        &copy; 2026 SKINGLOWTHEORY. All rights reserved.
+    </footer>
+
+    <!-- ═══ MODAL ═══ -->
+    <div class="modal-overlay" id="waitlistModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal()" aria-label="Close">&times;</button>
+
+            <!-- Form view -->
+            <div id="formView">
+                <span class="modal-badge" id="productBadge">Order Now</span>
+                <h2>Place Your Order</h2>
+                <p class="desc">Drop your name & WhatsApp number and we'll reach out to you as soon as possible to confirm your order and arrange delivery.</p>
+                <p class="fine">Fast replies. Nationwide delivery.</p>
+
+                <!--
+                    ═══════════════════════════════════════
+                    NETLIFY FORMS — HOW THIS WORKS:
+                    ═══════════════════════════════════════
+                    1. The form has: name="orders" & data-netlify="true"
+                    2. When you deploy to Netlify, it auto-detects
+                       this form during build and creates a
+                       form endpoint for it.
+                    3. Go to: Netlify Dashboard → Your Site →
+                       Forms → "orders" to see submissions.
+                    4. To get EMAIL NOTIFICATIONS:
+                       Site Settings → Forms → Form notifications
+                       → Add "Email notification" → pick "orders"
+                       → enter your email.
+                    ═══════════════════════════════════════
+                -->
+                <form name="orders" method="POST" data-netlify="true" netlify-honeypot="bot-field" id="waitlistForm">
+                    <input type="hidden" name="form-name" value="orders">
+                    <input type="hidden" name="bot-field">
+                    <input type="hidden" name="product" id="hiddenProduct">
+
+                    <div class="form-group">
+                        <label for="full_name">Full Name</label>
+                        <input type="text" id="full_name" name="full_name" required placeholder="e.g. Sandra Adebayo">
+                    </div>
+                    <div class="form-group">
+                        <label for="whatsapp">WhatsApp Number</label>
+                        <input type="tel" id="whatsapp" name="whatsapp" required placeholder="e.g. +234 800 000 0000">
+                    </div>
+                    <button type="submit" class="submit-btn">Submit Order ✨</button>
+                </form>
+            </div>
+
+            <!-- Success view -->
+            <div class="success-state" id="successView">
+                <div class="check">✓</div>
+                <h3>Order received!</h3>
+                <p>We'll contact you on WhatsApp as soon as possible to confirm. Stay glowing. 💗</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('waitlistModal');
+        const hiddenProduct = document.getElementById('hiddenProduct');
+        const badge = document.getElementById('productBadge');
+        const formView = document.getElementById('formView');
+        const successView = document.getElementById('successView');
+        const form = document.getElementById('waitlistForm');
+
+        function openModal(productName) {
+            hiddenProduct.value = productName;
+            badge.textContent = productName;
+            // Reset to form view each time
+            formView.style.display = 'block';
+            successView.classList.remove('show');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close on backdrop click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Handle form submit — works with Netlify + shows success state
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+
+            try {
+                await fetch('/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams(formData).toString()
+                });
+
+                // Show success
+                formView.style.display = 'none';
+                successView.classList.add('show');
+                form.reset();
+            } catch (err) {
+                // Fallback — form still submits natively on Netlify
+                alert('Something went wrong. Please try again!');
+            }
+        });
+    </script>
+
+</body>
+</html>
